@@ -1,1788 +1,755 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LeiteBov — Gestão Leiteira</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --verde-campo: #2D5016;
-    --verde-meio: #4A7C28;
-    --verde-claro: #7FB236;
-    --creme: #F5EDD8;
-    --creme-escuro: #E8D9B8;
-    --marrom: #6B3D14;
-    --marrom-claro: #C4845A;
-    --leite: #FDFAF4;
-    --terra: #8B5E3C;
-    --ouro: #D4A017;
-    --ouro-claro: #F0C040;
-    --cinza-campo: #4A4A3A;
-    --sombra: rgba(45,80,22,0.15);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--creme);
-    color: var(--cinza-campo);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Textura de fundo */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: 
-      radial-gradient(circle at 20% 80%, rgba(127,178,54,0.08) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(45,80,22,0.06) 0%, transparent 50%),
-      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234A7C28' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* HEADER */
-  header {
-    position: relative;
-    z-index: 10;
-    background: linear-gradient(135deg, var(--verde-campo) 0%, var(--verde-meio) 60%, var(--verde-claro) 100%);
-    padding: 0 24px;
-    box-shadow: 0 4px 24px rgba(45,80,22,0.3);
-  }
-
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 0 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .logo-icon {
-    width: 44px;
-    height: 44px;
-    background: var(--creme);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-
-  .logo-text h1 {
-    font-family: 'Fraunces', serif;
-    font-size: 22px;
-    color: #fff;
-    font-weight: 900;
-    letter-spacing: -0.5px;
-    line-height: 1;
-  }
-
-  .logo-text span {
-    font-size: 11px;
-    color: rgba(255,255,255,0.7);
-    font-weight: 300;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .header-meta {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .fazenda-badge {
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 20px;
-    padding: 6px 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .fazenda-badge:hover { background: rgba(255,255,255,0.22); }
-  .fazenda-badge span { font-size: 12px; color: #fff; font-weight: 500; }
-
-  .notif-btn {
-    width: 36px; height: 36px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    position: relative;
-    transition: background 0.2s;
-  }
-
-  .notif-btn:hover { background: rgba(255,255,255,0.22); }
-
-  .notif-dot {
-    position: absolute;
-    top: 4px; right: 4px;
-    width: 8px; height: 8px;
-    background: var(--ouro-claro);
-    border-radius: 50%;
-    border: 1.5px solid var(--verde-meio);
-  }
-
-  /* TABS */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    padding: 12px 0 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .tabs::-webkit-scrollbar { display: none; }
-
-  .tab-btn {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 18px 11px;
-    border: none;
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.65);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    border-radius: 10px 10px 0 0;
-    cursor: pointer;
-    transition: all 0.25s;
-    letter-spacing: 0.2px;
-  }
-
-  .tab-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
-
-  .tab-btn.active {
-    background: var(--creme);
-    color: var(--verde-campo);
-    font-weight: 600;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-  }
-
-  .tab-icon { font-size: 16px; }
-
-  /* MAIN */
-  main {
-    position: relative;
-    z-index: 1;
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px 16px 80px;
-  }
-
-  .tab-panel { display: none; animation: fadeIn 0.3s ease; }
-  .tab-panel.active { display: block; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ===================== CARDS & COMPONENTES GERAIS ===================== */
-  .section-title {
-    font-family: 'Fraunces', serif;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--verde-campo);
-    margin-bottom: 4px;
-  }
-
-  .section-sub {
-    font-size: 13px;
-    color: var(--terra);
-    margin-bottom: 20px;
-  }
-
-  .card {
-    background: var(--leite);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 2px 12px var(--sombra);
-    border: 1px solid var(--creme-escuro);
-    transition: box-shadow 0.2s;
-  }
-
-  .card:hover { box-shadow: 0 4px 20px var(--sombra); }
-
-  .card-title {
-    font-family: 'Fraunces', serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--verde-campo);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-
-  @media (max-width: 640px) {
-    .grid-2 { grid-template-columns: 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1fr; }
-    .grid-4 { grid-template-columns: 1fr 1fr; }
-  }
-
-  /* KPI CARDS */
-  .kpi-card {
-    background: var(--leite);
-    border-radius: 16px;
-    padding: 16px 18px;
-    border: 1px solid var(--creme-escuro);
-    box-shadow: 0 2px 10px var(--sombra);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 4px; height: 100%;
-    background: var(--verde-claro);
-  }
-
-  .kpi-card.amarelo::before { background: var(--ouro); }
-  .kpi-card.marrom::before { background: var(--marrom-claro); }
-  .kpi-card.vermelho::before { background: #D45C2A; }
-
-  .kpi-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--terra);
-    margin-bottom: 6px;
-  }
-
-  .kpi-value {
-    font-family: 'Fraunces', serif;
-    font-size: 28px;
-    font-weight: 900;
-    color: var(--verde-campo);
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .kpi-unit { font-size: 14px; font-weight: 400; }
-
-  .kpi-trend {
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    color: var(--verde-meio);
-    font-weight: 500;
-  }
-
-  .kpi-trend.down { color: #D45C2A; }
-
-  /* TABELA */
-  .tabela-wrap {
-    overflow-x: auto;
-    border-radius: 12px;
-    border: 1px solid var(--creme-escuro);
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  thead th {
-    background: var(--verde-campo);
-    color: #fff;
-    padding: 10px 14px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-  }
-
-  thead th:first-child { border-radius: 12px 0 0 0; }
-  thead th:last-child { border-radius: 0 12px 0 0; }
-
-  tbody tr { border-bottom: 1px solid var(--creme-escuro); }
-  tbody tr:hover { background: rgba(127,178,54,0.05); }
-  tbody tr:last-child { border-bottom: none; }
-  tbody td { padding: 10px 14px; color: var(--cinza-campo); }
-
-  .badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-
-  .badge-verde { background: rgba(127,178,54,0.15); color: var(--verde-meio); }
-  .badge-amarelo { background: rgba(212,160,23,0.15); color: #A07010; }
-  .badge-vermelho { background: rgba(212,92,42,0.15); color: #B03A1A; }
-  .badge-azul { background: rgba(42,100,180,0.12); color: #1A5090; }
-
-  /* BOTÕES */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-    text-decoration: none;
-  }
-
-  .btn-primary {
-    background: var(--verde-campo);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(45,80,22,0.3);
-  }
-
-  .btn-primary:hover {
-    background: var(--verde-meio);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(45,80,22,0.35);
-  }
-
-  .btn-outline {
-    background: transparent;
-    color: var(--verde-campo);
-    border: 1.5px solid var(--verde-campo);
-  }
-
-  .btn-outline:hover { background: rgba(45,80,22,0.06); }
-
-  .btn-ouro {
-    background: var(--ouro);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(212,160,23,0.35);
-  }
-
-  .btn-ouro:hover { background: #C09010; transform: translateY(-1px); }
-
-  /* INPUT */
-  .input-group { margin-bottom: 14px; }
-
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--terra);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 5px;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1.5px solid var(--creme-escuro);
-    border-radius: 10px;
-    background: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    color: var(--cinza-campo);
-    transition: border-color 0.2s;
-    outline: none;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--verde-claro);
-    box-shadow: 0 0 0 3px rgba(127,178,54,0.12);
-  }
-
-  textarea { resize: vertical; min-height: 80px; }
-
-  /* SEPARADOR */
-  .divider {
-    border: none;
-    border-top: 1px solid var(--creme-escuro);
-    margin: 20px 0;
-  }
-
-  /* PROGRESS BAR */
-  .progress-bar {
-    height: 8px;
-    background: var(--creme-escuro);
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 6px 0;
-  }
-
-  .progress-fill {
-    height: 100%;
-    border-radius: 10px;
-    background: linear-gradient(90deg, var(--verde-meio), var(--verde-claro));
-    transition: width 0.6s ease;
-  }
-
-  .progress-fill.amarelo { background: linear-gradient(90deg, var(--ouro), var(--ouro-claro)); }
-  .progress-fill.vermelho { background: linear-gradient(90deg, #C03A1A, #E05A30); }
-
-  /* ===================== ABA 1 — CONTROLE ZOOTÉCNICO ===================== */
-  .animal-card {
-    background: var(--leite);
-    border-radius: 14px;
-    padding: 14px 16px;
-    border: 1.5px solid var(--creme-escuro);
-    box-shadow: 0 2px 8px var(--sombra);
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .animal-card:hover {
-    border-color: var(--verde-claro);
-    box-shadow: 0 4px 16px rgba(127,178,54,0.2);
-    transform: translateY(-1px);
-  }
-
-  .animal-avatar {
-    width: 48px; height: 48px;
-    background: linear-gradient(135deg, var(--verde-meio), var(--verde-claro));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    flex-shrink: 0;
-  }
-
-  .animal-info { flex: 1; }
-  .animal-nome { font-weight: 700; font-size: 14px; color: var(--verde-campo); }
-  .animal-id { font-size: 11px; color: var(--terra); margin-bottom: 3px; }
-  .animal-stats { display: flex; gap: 10px; font-size: 12px; color: var(--cinza-campo); }
-  .animal-stat span { font-weight: 700; color: var(--verde-meio); }
-
-  .animal-card-right { text-align: right; }
-
-  .producao-hoje {
-    font-family: 'Fraunces', serif;
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--verde-campo);
-    line-height: 1;
-  }
-
-  .producao-label { font-size: 11px; color: var(--terra); }
-
-  /* Modal overlay */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(45,80,22,0.4);
-    backdrop-filter: blur(4px);
-    z-index: 100;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-
-  .modal {
-    background: var(--leite);
-    border-radius: 24px 24px 0 0;
-    padding: 20px 20px 40px;
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    transform: translateY(100%);
-    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
-    box-shadow: 0 -8px 40px rgba(0,0,0,0.15);
-  }
-
-  .modal-overlay.open .modal { transform: translateY(0); }
-
-  .modal-handle {
-    width: 40px; height: 4px;
-    background: var(--creme-escuro);
-    border-radius: 2px;
-    margin: 0 auto 16px;
-  }
-
-  .modal-title {
-    font-family: 'Fraunces', serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--verde-campo);
-    margin-bottom: 16px;
-  }
-
-  /* Gráfico simples de barras */
-  .mini-chart { display: flex; gap: 6px; align-items: flex-end; height: 60px; margin: 10px 0; }
-
-  .bar-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; }
-
-  .bar {
-    width: 100%;
-    border-radius: 4px 4px 0 0;
-    background: linear-gradient(180deg, var(--verde-claro), var(--verde-meio));
-    transition: height 0.5s ease;
-  }
-
-  .bar-label { font-size: 9px; color: var(--terra); font-weight: 600; }
-
-  /* ===================== ABA 2 — BENCHMARKING ===================== */
-  .bench-card {
-    background: var(--leite);
-    border-radius: 16px;
-    padding: 18px 20px;
-    border: 1px solid var(--creme-escuro);
-    box-shadow: 0 2px 12px var(--sombra);
-  }
-
-  .bench-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--creme-escuro);
-  }
-
-  .bench-row:last-child { border-bottom: none; }
-
-  .bench-rank {
-    font-family: 'Fraunces', serif;
-    font-size: 20px;
-    font-weight: 900;
-    width: 30px;
-    color: var(--creme-escuro);
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .bench-rank.ouro { color: var(--ouro); }
-  .bench-rank.prata { color: #A0A0A0; }
-  .bench-rank.bronze { color: var(--marrom-claro); }
-  .bench-rank.you { color: var(--verde-claro); }
-
-  .bench-info { flex: 1; }
-  .bench-nome { font-weight: 600; font-size: 13px; color: var(--cinza-campo); }
-  .bench-local { font-size: 11px; color: var(--terra); }
-
-  .bench-valor {
-    font-family: 'Fraunces', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--verde-campo);
-    text-align: right;
-  }
-
-  .bench-sub { font-size: 10px; color: var(--terra); text-align: right; }
-
-  .radar-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0;
-  }
-
-  .gauge {
-    position: relative;
-    width: 120px; height: 60px;
-    overflow: hidden;
-    margin: 0 auto;
-  }
-
-  .gauge-bg {
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    border: 10px solid var(--creme-escuro);
-    position: absolute;
-    top: 0; left: 0;
-    clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
-  }
-
-  .gauge-fill {
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    border: 10px solid var(--verde-claro);
-    position: absolute;
-    top: 0; left: 0;
-    clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
-    transform-origin: center 60px;
-  }
-
-  /* ===================== ABA 3 — SERVIÇOS ===================== */
-  .tech-card {
-    background: var(--leite);
-    border-radius: 16px;
-    padding: 18px;
-    border: 1px solid var(--creme-escuro);
-    box-shadow: 0 2px 12px var(--sombra);
-    transition: all 0.2s;
-    cursor: pointer;
-  }
-
-  .tech-card:hover {
-    box-shadow: 0 6px 24px rgba(45,80,22,0.15);
-    transform: translateY(-2px);
-    border-color: var(--verde-claro);
-  }
-
-  .tech-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-
-  .tech-avatar {
-    width: 52px; height: 52px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    flex-shrink: 0;
-  }
-
-  .tech-avatar.v1 { background: linear-gradient(135deg, #2D5016, #4A7C28); }
-  .tech-avatar.v2 { background: linear-gradient(135deg, #6B3D14, #C4845A); }
-  .tech-avatar.v3 { background: linear-gradient(135deg, #1A5090, #3A80C0); }
-  .tech-avatar.v4 { background: linear-gradient(135deg, #6B3D14, #A07010); }
-
-  .tech-nome { font-weight: 700; font-size: 14px; color: var(--verde-campo); }
-  .tech-cargo { font-size: 12px; color: var(--terra); margin-bottom: 4px; }
-
-  .stars { color: var(--ouro); font-size: 12px; letter-spacing: 1px; }
-
-  .tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-
-  .tag {
-    padding: 3px 10px;
-    background: rgba(45,80,22,0.08);
-    border: 1px solid rgba(45,80,22,0.15);
-    border-radius: 20px;
-    font-size: 11px;
-    color: var(--verde-campo);
-    font-weight: 500;
-  }
-
-  .tag.destaque { background: rgba(212,160,23,0.12); border-color: rgba(212,160,23,0.3); color: #906010; }
-
-  .tech-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 10px;
-    border-top: 1px solid var(--creme-escuro);
-  }
-
-  .tech-preco {
-    font-family: 'Fraunces', serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--verde-campo);
-  }
-
-  .tech-disponib {
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-weight: 600;
-  }
-
-  .disponib-sim { background: rgba(127,178,54,0.15); color: var(--verde-meio); }
-  .disponib-agenda { background: rgba(212,160,23,0.12); color: #906010; }
-
-  .solicitacao-card {
-    background: linear-gradient(135deg, var(--verde-campo) 0%, var(--verde-meio) 100%);
-    border-radius: 16px;
-    padding: 20px;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .solicitacao-card::before {
-    content: '🌾';
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 60px;
-    opacity: 0.15;
-  }
-
-  .solic-title {
-    font-family: 'Fraunces', serif;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .solic-desc { font-size: 13px; opacity: 0.85; margin-bottom: 14px; }
-
-  /* BOTTOM NAV fixo mobile */
-  .bottom-bar {
-    display: none;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--leite);
-    border-top: 1px solid var(--creme-escuro);
-    padding: 8px 0 16px;
-    z-index: 50;
-    box-shadow: 0 -4px 20px var(--sombra);
-  }
-
-  @media (max-width: 600px) {
-    .bottom-bar { display: flex; }
-    header .tabs { display: none; }
-    main { padding-bottom: 100px; }
-  }
-
-  .bnav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 10px;
-    transition: all 0.2s;
-    border: none;
-    background: none;
-  }
-
-  .bnav-item.active .bnav-icon { color: var(--verde-campo); }
-  .bnav-item.active .bnav-label { color: var(--verde-campo); font-weight: 700; }
-
-  .bnav-icon { font-size: 22px; color: var(--terra); transition: color 0.2s; }
-  .bnav-label { font-size: 10px; color: var(--terra); font-weight: 500; transition: color 0.2s; font-family: 'DM Sans', sans-serif; }
-
-  /* Floating action */
-  .fab {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 52px; height: 52px;
-    background: var(--verde-campo);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    box-shadow: 0 4px 16px rgba(45,80,22,0.4);
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-    z-index: 40;
-  }
-
-  .fab:hover { transform: scale(1.08); background: var(--verde-meio); }
-
-  @media (min-width: 601px) { .fab { display: none; } }
-
-  /* Utils */
-  .mt8 { margin-top: 8px; }
-  .mt12 { margin-top: 12px; }
-  .mt16 { margin-top: 16px; }
-  .mt20 { margin-top: 20px; }
-  .mb12 { margin-bottom: 12px; }
-  .mb16 { margin-bottom: 16px; }
-  .flex { display: flex; }
-  .flex-between { display: flex; align-items: center; justify-content: space-between; }
-  .flex-center { display: flex; align-items: center; gap: 8px; }
-  .gap8 { gap: 8px; }
-  .gap12 { gap: 12px; }
-  .w100 { width: 100%; }
-  .text-right { text-align: right; }
-
-  /* Scroll suave */
-  html { scroll-behavior: smooth; }
-
-  /* Tooltip data */
-  [data-tooltip] { position: relative; cursor: help; }
-  [data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--verde-campo);
-    color: #fff;
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-    z-index: 99;
-  }
-  [data-tooltip]:hover::after { opacity: 1; }
-
-  /* Animação pulsante para avisos */
-  @keyframes pulse {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  .pulse { animation: pulse 2s infinite; }
-
-  /* Linhas do gráfico SVG */
-  .chart-svg-wrap {
-    width: 100%;
-    height: 90px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Alertas */
-  .alert {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  .alert-amarelo { background: rgba(212,160,23,0.12); color: #806010; border: 1px solid rgba(212,160,23,0.3); }
-  .alert-verde { background: rgba(127,178,54,0.12); color: var(--verde-meio); border: 1px solid rgba(127,178,54,0.3); }
-  .alert-vermelho { background: rgba(212,92,42,0.12); color: #A03010; border: 1px solid rgba(212,92,42,0.3); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>LeiteBov · Gestão Leiteira + Financeiro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --verde-base: #2F6B2F;
+      --verde-claro: #E8F3E8;
+      --verde-destaque: #3E8E3E;
+      --cinza-escuro: #2C2C2C;
+      --cinza-medio: #5A5A5A;
+      --cinza-suave: #F5F5F5;
+      --borda: #E0E0E0;
+      --branco: #FFFFFF;
+      --ouro-suave: #E6A017;
+      --alerta: #D9534F;
+      --sucesso: #4CAF50;
+      --sombra-leve: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', 'DM Sans', Roboto, sans-serif;
+      background: var(--cinza-suave);
+      color: var(--cinza-escuro);
+      line-height: 1.4;
+      padding-bottom: 72px;
+    }
+
+    .app-header {
+      background: var(--branco);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--borda);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon { font-size: 26px; }
+    .logo-text h1 { font-size: 18px; font-weight: 600; color: var(--verde-base); }
+    .logo-text span { font-size: 11px; color: var(--cinza-medio); }
+
+    .fazenda-badge {
+      background: var(--verde-claro);
+      padding: 5px 12px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--verde-base);
+    }
+
+    .tabs-container {
+      background: var(--branco);
+      padding: 0 12px;
+      border-bottom: 1px solid var(--borda);
+      display: flex;
+      gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--cinza-medio);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      color: var(--verde-base);
+      border-bottom-color: var(--verde-base);
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .tab-panel { display: none; animation: fade 0.2s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+
+    .card {
+      background: var(--branco);
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid var(--borda);
+      box-shadow: var(--sombra-leve);
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--cinza-escuro);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .kpi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-item {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: 20px;
+      padding: 12px 14px;
+      flex: 1 1 160px;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--cinza-medio);
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--verde-base);
+      line-height: 1.2;
+    }
+
+    .kpi-unit { font-size: 14px; font-weight: 400; color: var(--cinza-medio); }
+    .kpi-trend { font-size: 11px; color: var(--cinza-medio); margin-top: 4px; }
+
+    .table-wrapper { overflow-x: auto; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 10px 6px 6px 0;
+      font-weight: 600;
+      color: var(--cinza-medio);
+      border-bottom: 1px solid var(--borda);
+    }
+    .data-table td {
+      padding: 8px 6px 8px 0;
+      border-bottom: 1px solid var(--borda);
+      color: var(--cinza-escuro);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--verde-claro);
+      color: var(--verde-base);
+    }
+    .badge-warning { background: #FFF0DB; color: #B45F06; }
+    .badge-danger { background: #FDEDEC; color: #C0392B; }
+    .badge-success { background: #E0F2E0; color: #2E6B2E; }
+
+    .btn {
+      border: none;
+      border-radius: 40px;
+      padding: 8px 18px;
+      font-weight: 500;
+      font-size: 13px;
+      background: var(--verde-base);
+      color: white;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--verde-base);
+      color: var(--verde-base);
+    }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+    .btn-block { width: 100%; justify-content: center; }
+
+    .progress {
+      background: var(--borda);
+      border-radius: 12px;
+      height: 8px;
+      overflow: hidden;
+      margin: 8px 0 4px;
+    }
+    .progress-fill { background: var(--verde-base); width: 0%; height: 100%; border-radius: 12px; }
+
+    /* LISTA DE ANIMAIS - CORRIGIDA */
+    .animais-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .animal-row {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .animal-row:hover {
+      background: var(--verde-claro);
+      transform: translateX(2px);
+    }
+
+    .animal-avatar {
+      font-size: 36px;
+      flex-shrink: 0;
+    }
+
+    .animal-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .animal-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--cinza-escuro);
+      margin-bottom: 4px;
+    }
+
+    .animal-details {
+      font-size: 12px;
+      color: var(--cinza-medio);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .animal-detail-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .animal-prod-area {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .animal-prod-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--verde-base);
+      line-height: 1;
+    }
+
+    .animal-prod-label {
+      font-size: 10px;
+      color: var(--cinza-medio);
+    }
+
+    .animal-badge {
+      margin-top: 4px;
+      font-size: 10px;
+    }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.2s;
+    }
+    .modal-mask.open { visibility: visible; opacity: 1; }
+    .modal-content {
+      background: var(--branco);
+      width: 100%;
+      max-width: 500px;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+    }
+    .modal-mask.open .modal-content { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; background: #ccc; border-radius: 10px; margin: 0 auto 16px; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--borda);
+      border-radius: 16px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    label { font-size: 12px; font-weight: 500; color: var(--cinza-medio); display: block; margin-bottom: 5px; }
+    .input-group { margin-bottom: 14px; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--branco);
+      border-top: 1px solid var(--borda);
+      display: flex;
+      padding: 8px 16px 12px;
+      justify-content: space-around;
+      z-index: 15;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      font-size: 12px;
+      color: var(--cinza-medio);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .nav-item.active { color: var(--verde-base); }
+    .nav-icon { font-size: 22px; }
+
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .mb-2 { margin-bottom: 8px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .gap-2 { gap: 8px; }
+    .text-small { font-size: 12px; color: var(--cinza-medio); }
+    .alert-line {
+      background: #FEF5E7;
+      border-left: 4px solid var(--ouro-suave);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="header-top">
-    <div class="logo">
+<header class="app-header">
+  <div class="header-row">
+    <div class="logo-area">
       <div class="logo-icon">🐄</div>
       <div class="logo-text">
         <h1>LeiteBov</h1>
-        <span>Gestão Leiteira</span>
+        <span>gestão + financeiro</span>
       </div>
     </div>
-    <div class="header-meta">
-      <div class="fazenda-badge">
-        <span>🌿</span>
-        <span>Fazenda São Pedro</span>
-        <span>▾</span>
-      </div>
-      <div class="notif-btn" onclick="toggleNotif()">
-        🔔
-        <div class="notif-dot"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TABS Desktop -->
-  <div class="tabs" id="tabsDesktop">
-    <button class="tab-btn active" onclick="showTab('zootecnico', this)">
-      <span class="tab-icon">🐄</span> Controle Zootécnico
-    </button>
-    <button class="tab-btn" onclick="showTab('benchmarking', this)">
-      <span class="tab-icon">📊</span> Benchmarking
-    </button>
-    <button class="tab-btn" onclick="showTab('servicos', this)">
-      <span class="tab-icon">🛠️</span> Oferta de Serviços
-    </button>
+    <div class="fazenda-badge">🌿 Faz. São Pedro</div>
   </div>
 </header>
 
-<!-- ===================== MAIN ===================== -->
+<div class="tabs-container">
+  <button class="tab-btn active" data-tab="zootecnico">🐄 Rebanho</button>
+  <button class="tab-btn" data-tab="financeiro">💰 Financeiro</button>
+  <button class="tab-btn" data-tab="benchmarking">📊 Comparar</button>
+  <button class="tab-btn" data-tab="servicos">🛠️ Técnicos</button>
+</div>
+
 <main>
-
-  <!-- ======================== ABA 1: CONTROLE ZOOTÉCNICO ======================== -->
-  <div class="tab-panel active" id="tab-zootecnico">
-
-    <div class="flex-between mb12">
-      <div>
-        <div class="section-title">Controle Zootécnico</div>
-        <div class="section-sub">Rebanho ativo — Atualizado hoje, 07h30</div>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('modalLancamento')">
-        ＋ Lançar
-      </button>
+  <!-- ABA 1: ZOOTECNIA -->
+  <div class="tab-panel active" id="panel-zootecnico">
+    <div class="flex-between mb-2">
+      <div class="card-title">📋 Resumo hoje</div>
+      <button class="btn btn-small" id="fabLancarBtn">+ Lançar produção</button>
     </div>
-
-    <!-- KPIs -->
-    <div class="grid-4 mb16">
-      <div class="kpi-card">
-        <div class="kpi-label">Produção Hoje</div>
-        <div class="kpi-value">1.847<span class="kpi-unit"> L</span></div>
-        <div class="kpi-trend">↑ +3,2% vs ontem</div>
-      </div>
-      <div class="kpi-card amarelo">
-        <div class="kpi-label">Vacas em Lactação</div>
-        <div class="kpi-value">62</div>
-        <div class="kpi-trend">📋 de 78 total</div>
-      </div>
-      <div class="kpi-card marrom">
-        <div class="kpi-label">Média/Vaca/Dia</div>
-        <div class="kpi-value">29,8<span class="kpi-unit"> L</span></div>
-        <div class="kpi-trend">↑ meta: 28 L ✓</div>
-      </div>
-      <div class="kpi-card vermelho">
-        <div class="kpi-label">CCS (x1000)</div>
-        <div class="kpi-value">248</div>
-        <div class="kpi-trend down">↑ atenção</div>
-      </div>
+    <div class="kpi-grid" id="kpiContainer"></div>
+    <div id="alertContainer"></div>
+    
+    <div class="flex-between mb-2">
+      <span class="card-title">🐄 Últimas produções</span>
+      <span class="text-small">clique para detalhes</span>
     </div>
-
-    <!-- Gráfico de produção semanal -->
-    <div class="card mb16">
-      <div class="card-title">📈 Produção Semanal (litros/dia)</div>
-      <div class="mini-chart" id="chartSemanal"></div>
-      <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--terra); margin-top:2px;">
-        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
-      </div>
-    </div>
-
-    <!-- Alertas -->
-    <div class="mb16">
-      <div class="alert alert-amarelo">⚠️ <strong>Nº 14 — Mimosa:</strong> Vacina aftosa vence em 3 dias</div>
-      <div class="alert alert-vermelho">🩺 <strong>Nº 31 — Joana:</strong> CCS elevado — acompanhamento veterinário recomendado</div>
-      <div class="alert alert-verde">✅ <strong>Nº 07 — Flora:</strong> Inseminação confirmada — dia 18 de gestação</div>
-    </div>
-
-    <!-- Lista de animais -->
-    <div class="flex-between mb12">
-      <div class="card-title" style="margin-bottom:0">🐄 Animais em Destaque</div>
-      <button class="btn btn-outline" style="padding:6px 14px; font-size:12px;">Ver todos</button>
-    </div>
-
-    <div style="display:flex; flex-direction:column; gap:10px;">
-      <div class="animal-card" onclick="openAnimal(1)">
-        <div class="animal-avatar">🐄</div>
-        <div class="animal-info">
-          <div class="animal-id">#007 · Holandesa</div>
-          <div class="animal-nome">Flora</div>
-          <div class="animal-stats">
-            <div>Gestação: <span>18 dias</span></div>
-            <div>Ordem: <span>3ª</span></div>
-            <div>Peso: <span>542 kg</span></div>
-          </div>
-        </div>
-        <div class="animal-card-right">
-          <div class="producao-hoje">34,2</div>
-          <div class="producao-label">L/dia</div>
-          <div class="badge badge-verde mt8">Ótima</div>
-        </div>
-      </div>
-
-      <div class="animal-card" onclick="openAnimal(2)">
-        <div class="animal-avatar">🐄</div>
-        <div class="animal-info">
-          <div class="animal-id">#014 · Jersey</div>
-          <div class="animal-nome">Mimosa</div>
-          <div class="animal-stats">
-            <div>Dias Lact: <span>87</span></div>
-            <div>Ordem: <span>5ª</span></div>
-            <div>Peso: <span>460 kg</span></div>
-          </div>
-        </div>
-        <div class="animal-card-right">
-          <div class="producao-hoje">22,8</div>
-          <div class="producao-label">L/dia</div>
-          <div class="badge badge-amarelo mt8">Atenção</div>
-        </div>
-      </div>
-
-      <div class="animal-card" onclick="openAnimal(3)">
-        <div class="animal-avatar">🐄</div>
-        <div class="animal-info">
-          <div class="animal-id">#031 · Girolando</div>
-          <div class="animal-nome">Joana</div>
-          <div class="animal-stats">
-            <div>Dias Lact: <span>210</span></div>
-            <div>Ordem: <span>2ª</span></div>
-            <div>Peso: <span>498 kg</span></div>
-          </div>
-        </div>
-        <div class="animal-card-right">
-          <div class="producao-hoje">18,4</div>
-          <div class="producao-label">L/dia</div>
-          <div class="badge badge-vermelho mt8">CCS Alto</div>
-        </div>
-      </div>
-
-      <div class="animal-card" onclick="openAnimal(4)">
-        <div class="animal-avatar">🐄</div>
-        <div class="animal-info">
-          <div class="animal-id">#042 · Holandesa</div>
-          <div class="animal-nome">Serena</div>
-          <div class="animal-stats">
-            <div>Dias Lact: <span>12</span></div>
-            <div>Ordem: <span>1ª</span></div>
-            <div>Peso: <span>510 kg</span></div>
-          </div>
-        </div>
-        <div class="animal-card-right">
-          <div class="producao-hoje">31,0</div>
-          <div class="producao-label">L/dia</div>
-          <div class="badge badge-verde mt8">Ótima</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabela Nutricional -->
-    <div class="card mt20">
-      <div class="card-title">🌾 Controle Nutricional — Semana Atual</div>
-      <div class="tabela-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Dieta</th>
-              <th>Animais</th>
-              <th>Consumo MS</th>
-              <th>Energia (Mcal)</th>
-              <th>Status</th>
-            </tr>
-          </thead>
+    <div id="animalList" class="animais-container"></div>
+    
+    <div class="card">
+      <div class="card-title">🌾 Consumo médio (MS)</div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th>Dieta</th><th>Animais</th><th>Consumo</th><th>Status</th></tr></thead>
           <tbody>
-            <tr>
-              <td><strong>Alta Produção</strong></td>
-              <td>28</td>
-              <td>22,4 kg</td>
-              <td>36,8</td>
-              <td><span class="badge badge-verde">✓ Ok</span></td>
-            </tr>
-            <tr>
-              <td><strong>Média Produção</strong></td>
-              <td>34</td>
-              <td>19,6 kg</td>
-              <td>31,2</td>
-              <td><span class="badge badge-verde">✓ Ok</span></td>
-            </tr>
-            <tr>
-              <td><strong>Secas</strong></td>
-              <td>12</td>
-              <td>10,2 kg</td>
-              <td>18,4</td>
-              <td><span class="badge badge-amarelo">⚠ Rev.</span></td>
-            </tr>
-            <tr>
-              <td><strong>Novilhas</strong></td>
-              <td>4</td>
-              <td>8,8 kg</td>
-              <td>14,6</td>
-              <td><span class="badge badge-verde">✓ Ok</span></td>
-            </tr>
+            <tr><td>Alta Produção</td><td>28</td><td>22,4 kg</td><td><span class="badge">OK</span></td></tr>
+            <tr><td>Média Produção</td><td>34</td><td>19,6 kg</td><td><span class="badge">OK</span></td></tr>
+            <tr><td>Secas</td><td>12</td><td>10,2 kg</td><td><span class="badge badge-warning">Revisar</span></td></tr>
           </tbody>
         </table>
       </div>
     </div>
+  </div>
 
-  </div><!-- /tab-zootecnico -->
+  <!-- ABA 2: GESTÃO FINANCEIRA -->
+  <div class="tab-panel" id="panel-financeiro">
+    <div class="flex-between mb-2">
+      <div class="card-title">💰 Fluxo de Caixa - Leite</div>
+      <button class="btn btn-small" id="btnAddTransacao">+ Registrar</button>
+    </div>
+    
+    <div class="kpi-grid" id="finKpis"></div>
 
-
-  <!-- ======================== ABA 2: BENCHMARKING ======================== -->
-  <div class="tab-panel" id="tab-benchmarking">
-
-    <div class="flex-between mb12">
-      <div>
-        <div class="section-title">Benchmarking</div>
-        <div class="section-sub">Sua fazenda vs. referências regionais — RS Sul</div>
-      </div>
-      <button class="btn btn-ouro" style="font-size:12px; padding:8px 14px">⬇ Exportar</button>
+    <div class="card">
+      <div class="card-title">📈 Receitas vs Despesas (este mês)</div>
+      <div class="progress" style="height: 12px;"><div class="progress-fill" id="receitaProgress" style="background: #4CAF50; width: 0%;"></div></div>
+      <div class="flex-between text-small mt-2"><span>🟢 Receitas</span><span id="totalReceitasValor">R$ 0</span></div>
+      <div class="progress mt-1" style="height: 12px;"><div class="progress-fill" id="despesaProgress" style="background: #D9534F; width: 0%;"></div></div>
+      <div class="flex-between text-small mt-2"><span>🔴 Despesas</span><span id="totalDespesasValor">R$ 0</span></div>
+      <div class="flex-between mt-3"><span class="card-title" style="margin-bottom:0;">📊 Resultado</span><strong id="resultadoMes" style="font-size: 20px;">R$ 0</strong></div>
+      <div class="text-small" id="margemInfo"></div>
     </div>
 
-    <!-- Posição geral -->
-    <div class="card mb16" style="background: linear-gradient(135deg, var(--verde-campo), var(--verde-meio)); color: #fff; border:none;">
-      <div style="display:flex; align-items:center; gap:16px;">
-        <div style="font-size:52px; font-family:'Fraunces',serif; font-weight:900; line-height:1; color:var(--ouro-claro);">4º</div>
-        <div style="flex:1;">
-          <div style="font-family:'Fraunces',serif; font-size:18px; font-weight:700; margin-bottom:4px;">Sua Posição Regional</div>
-          <div style="font-size:13px; opacity:0.85;">De 38 fazendas avaliadas na região Sul do RS</div>
-          <div style="font-size:12px; margin-top:6px; opacity:0.7;">Período: Jan–Mar 2025 · Atualizado em Abr 2025</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-family:'Fraunces',serif; font-size:24px; font-weight:900; color:var(--ouro-claro);">87</div>
-          <div style="font-size:11px; opacity:0.75;">Score Geral</div>
-        </div>
+    <div class="card">
+      <div class="card-title">📋 Últimas transações</div>
+      <div class="table-wrapper">
+        <table class="data-table" id="transacoesTable">
+          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead>
+          <tbody id="transacoesBody"></tbody>
+        </table>
       </div>
+      <button class="btn btn-outline btn-small mt-2" id="verTodasTransacoes" style="width:100%;">Ver extrato completo</button>
     </div>
 
-    <!-- Indicadores comparativos -->
-    <div class="grid-2 mb16">
-
-      <div class="bench-card">
-        <div class="card-title">🥛 Produção/Vaca/Dia</div>
-        <div style="margin-bottom:10px;">
-          <div class="flex-between" style="font-size:12px; color:var(--terra); margin-bottom:3px;">
-            <span>Você: <strong style="color:var(--verde-campo)">29,8 L</strong></span>
-            <span>Top 25%: 32 L</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:87%"></div></div>
-          <div style="font-size:10px; color:var(--terra); margin-top:2px;">87% da meta do quartil superior</div>
-        </div>
-        <div class="flex-between">
-          <span style="font-size:11px; color:var(--terra)">Média regional: 24,1 L</span>
-          <span class="badge badge-verde">↑ 24% acima</span>
-        </div>
-      </div>
-
-      <div class="bench-card">
-        <div class="card-title">🧪 Qualidade CCS</div>
-        <div style="margin-bottom:10px;">
-          <div class="flex-between" style="font-size:12px; color:var(--terra); margin-bottom:3px;">
-            <span>Você: <strong style="color:#D45C2A">248 mil/mL</strong></span>
-            <span>Meta ≤200</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill amarelo" style="width:62%"></div></div>
-          <div style="font-size:10px; color:var(--terra); margin-top:2px;">62% — requer atenção</div>
-        </div>
-        <div class="flex-between">
-          <span style="font-size:11px; color:var(--terra)">Média regional: 290 mil</span>
-          <span class="badge badge-verde">✓ Melhor que média</span>
-        </div>
-      </div>
-
-      <div class="bench-card">
-        <div class="card-title">💰 Custo/Litro</div>
-        <div style="margin-bottom:10px;">
-          <div class="flex-between" style="font-size:12px; color:var(--terra); margin-bottom:3px;">
-            <span>Você: <strong style="color:var(--verde-campo)">R$ 1,42</strong></span>
-            <span>Top: R$ 1,18</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:75%"></div></div>
-          <div style="font-size:10px; color:var(--terra); margin-top:2px;">Eficiência: 75%</div>
-        </div>
-        <div class="flex-between">
-          <span style="font-size:11px; color:var(--terra)">Média regional: R$ 1,64</span>
-          <span class="badge badge-verde">↑ 13% mais eficiente</span>
-        </div>
-      </div>
-
-      <div class="bench-card">
-        <div class="card-title">🐄 Taxa de Prenhez</div>
-        <div style="margin-bottom:10px;">
-          <div class="flex-between" style="font-size:12px; color:var(--terra); margin-bottom:3px;">
-            <span>Você: <strong style="color:var(--verde-campo)">62%</strong></span>
-            <span>Top: 75%</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:82%"></div></div>
-          <div style="font-size:10px; color:var(--terra); margin-top:2px;">82% da melhor fazenda</div>
-        </div>
-        <div class="flex-between">
-          <span style="font-size:11px; color:var(--terra)">Média regional: 48%</span>
-          <span class="badge badge-verde">↑ 29% acima</span>
-        </div>
-      </div>
+    <div class="card">
+      <div class="card-title">🥛 Custo por litro (detalhado)</div>
+      <div class="flex-between"><span>Custo operacional total / mês</span><strong id="custoTotalOperacional">R$ 0</strong></div>
+      <div class="flex-between mt-2"><span>Produção total (litros)</span><strong id="producaoTotalLitros">0 L</strong></div>
+      <div class="progress mt-2"><div class="progress-fill" id="custoPorLitroBar" style="width: 0%; background: var(--ouro-suave);"></div></div>
+      <div class="flex-between mt-2"><span>💵 <strong>Custo por litro</strong></span><strong id="custoPorLitroValor" style="font-size: 18px;">R$ 0,00</strong></div>
+      <div class="text-small mt-2">💰 Preço médio de venda: <span id="precoVendaMedio">R$ 2,10</span> / L → <span id="lucroPorLitro">R$ 0,00</span> de lucro por litro</div>
     </div>
+  </div>
 
-    <!-- Ranking -->
-    <div class="bench-card mb16">
-      <div class="card-title">🏆 Ranking Regional — Produção Média</div>
-
-      <div class="bench-row">
-        <div class="bench-rank ouro">1</div>
-        <div class="bench-info">
-          <div class="bench-nome">Fazenda Boa Esperança</div>
-          <div class="bench-local">📍 Pelotas, RS</div>
-        </div>
-        <div>
-          <div class="bench-valor">38,4 L</div>
-          <div class="bench-sub">vaca/dia</div>
-        </div>
+  <!-- ABA 3: BENCHMARKING -->
+  <div class="tab-panel" id="panel-benchmarking">
+    <div class="card">
+      <div class="flex-between">
+        <div class="card-title">🏆 Posição regional</div>
+        <span class="badge" id="rankPosicao">4º lugar</span>
       </div>
-      <div class="bench-row">
-        <div class="bench-rank prata">2</div>
-        <div class="bench-info">
-          <div class="bench-nome">Sítio Três Irmãos</div>
-          <div class="bench-local">📍 Bagé, RS</div>
-        </div>
-        <div>
-          <div class="bench-valor">35,9 L</div>
-          <div class="bench-sub">vaca/dia</div>
-        </div>
-      </div>
-      <div class="bench-row">
-        <div class="bench-rank bronze">3</div>
-        <div class="bench-info">
-          <div class="bench-nome">Granja Santa Clara</div>
-          <div class="bench-local">📍 Dom Pedrito, RS</div>
-        </div>
-        <div>
-          <div class="bench-valor">33,1 L</div>
-          <div class="bench-sub">vaca/dia</div>
-        </div>
-      </div>
-      <div class="bench-row" style="background:rgba(127,178,54,0.07); border-radius:10px; padding-left:8px;">
-        <div class="bench-rank you">4</div>
-        <div class="bench-info">
-          <div class="bench-nome" style="color:var(--verde-campo); font-weight:700;">★ Fazenda São Pedro</div>
-          <div class="bench-local" style="color:var(--verde-meio);">📍 Santa Rosa, RS — Você</div>
-        </div>
-        <div>
-          <div class="bench-valor">29,8 L</div>
-          <div class="bench-sub">vaca/dia</div>
-        </div>
-      </div>
-      <div class="bench-row">
-        <div class="bench-rank" style="color:var(--creme-escuro)">5</div>
-        <div class="bench-info">
-          <div class="bench-nome">Campo Verde Agro</div>
-          <div class="bench-local">📍 Livramento, RS</div>
-        </div>
-        <div>
-          <div class="bench-valor">27,4 L</div>
-          <div class="bench-sub">vaca/dia</div>
-        </div>
-      </div>
+      <div class="mt-2"><strong>Fazenda São Pedro</strong> · <span id="scoreGeral">87</span> pontos</div>
+      <div class="progress mt-2"><div class="progress-fill" id="progressScore" style="width: 78%;"></div></div>
+      <div class="flex-between text-small mt-2"><span>Média regional: 24,1 L/vaca</span><span>Sua meta: 32 L</span></div>
     </div>
-
-    <!-- Tendência histórica -->
-    <div class="bench-card">
-      <div class="card-title">📅 Evolução Anual — Score Geral</div>
-      <div class="mini-chart" id="chartBench" style="height:70px;"></div>
-      <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--terra); margin-top:4px;">
-        <span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span>
-      </div>
-      <div class="alert alert-verde mt12">
-        📈 Sua fazenda cresceu <strong>18 pontos</strong> no score em 7 meses. Continue!
-      </div>
-    </div>
-
-  </div><!-- /tab-benchmarking -->
-
-
-  <!-- ======================== ABA 3: SERVIÇOS ======================== -->
-  <div class="tab-panel" id="tab-servicos">
-
-    <div class="flex-between mb12">
-      <div>
-        <div class="section-title">Oferta de Serviços</div>
-        <div class="section-sub">Técnicos e especialistas disponíveis na sua região</div>
-      </div>
-      <button class="btn btn-outline" style="font-size:12px; padding:8px 14px;">🔍 Filtrar</button>
-    </div>
-
-    <!-- Card destaque: solicite -->
-    <div class="solicitacao-card mb16">
-      <div class="solic-title">Precisa de assistência?</div>
-      <div class="solic-desc">Conecte-se a técnicos certificados a partir de R$ 180/visita</div>
-      <button class="btn" style="background:#fff; color:var(--verde-campo); font-size:13px;" onclick="openModal('modalSolicitar')">
-        Solicitar visita técnica →
-      </button>
-    </div>
-
-    <!-- Filtros rápidos -->
-    <div class="flex" style="gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:16px; scrollbar-width:none;">
-      <button class="btn btn-primary" style="flex-shrink:0; font-size:12px; padding:7px 14px;">Todos</button>
-      <button class="btn btn-outline" style="flex-shrink:0; font-size:12px; padding:7px 14px;">Medicina Vet.</button>
-      <button class="btn btn-outline" style="flex-shrink:0; font-size:12px; padding:7px 14px;">Nutrição</button>
-      <button class="btn btn-outline" style="flex-shrink:0; font-size:12px; padding:7px 14px;">Reprodução</button>
-      <button class="btn btn-outline" style="flex-shrink:0; font-size:12px; padding:7px 14px;">Gestão</button>
-    </div>
-
-    <!-- Cards técnicos -->
-    <div style="display:flex; flex-direction:column; gap:12px;">
-
-      <div class="tech-card" onclick="openModal('modalTech1')">
-        <div class="tech-header">
-          <div class="tech-avatar v1">👨‍⚕️</div>
-          <div style="flex:1;">
-            <div class="tech-nome">Dr. Carlos Mendes</div>
-            <div class="tech-cargo">Médico Veterinário — CRMV-RS 12.847</div>
-            <div class="stars">★★★★★ <span style="color:var(--terra); font-size:11px;">4,9 (87 avaliações)</span></div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:11px; color:var(--terra);">📍 32 km</div>
-          </div>
-        </div>
-        <div class="tags-wrap">
-          <span class="tag destaque">🏆 Top Regional</span>
-          <span class="tag">Mastite</span>
-          <span class="tag">CCS</span>
-          <span class="tag">Reprodução</span>
-          <span class="tag">Ultrassom</span>
-        </div>
-        <div class="tech-footer">
-          <div>
-            <div class="tech-preco">R$ 280 <span style="font-size:12px; color:var(--terra); font-weight:400;">/visita</span></div>
-            <div style="font-size:11px; color:var(--terra);">ou R$ 890/mês (plano)</div>
-          </div>
-          <span class="tech-disponib disponib-sim">● Disponível</span>
-        </div>
-      </div>
-
-      <div class="tech-card" onclick="openModal('modalTech2')">
-        <div class="tech-header">
-          <div class="tech-avatar v2">👩‍🔬</div>
-          <div style="flex:1;">
-            <div class="tech-nome">Dra. Fernanda Lima</div>
-            <div class="tech-cargo">Zootecnista — CRMV-RS 08.214</div>
-            <div class="stars">★★★★★ <span style="color:var(--terra); font-size:11px;">4,8 (64 avaliações)</span></div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:11px; color:var(--terra);">📍 18 km</div>
-          </div>
-        </div>
-        <div class="tags-wrap">
-          <span class="tag">Nutrição</span>
-          <span class="tag">Formulação de Dietas</span>
-          <span class="tag">BEI</span>
-          <span class="tag">Confinamento</span>
-        </div>
-        <div class="tech-footer">
-          <div>
-            <div class="tech-preco">R$ 220 <span style="font-size:12px; color:var(--terra); font-weight:400;">/visita</span></div>
-            <div style="font-size:11px; color:var(--terra);">ou R$ 680/mês (plano)</div>
-          </div>
-          <span class="tech-disponib disponib-sim">● Disponível</span>
-        </div>
-      </div>
-
-      <div class="tech-card" onclick="openModal('modalTech3')">
-        <div class="tech-header">
-          <div class="tech-avatar v3">👨‍💼</div>
-          <div style="flex:1;">
-            <div class="tech-nome">Eng. Roberto Alves</div>
-            <div class="tech-cargo">Engenheiro Agrônomo — CREA-RS 47.320</div>
-            <div class="stars">★★★★☆ <span style="color:var(--terra); font-size:11px;">4,6 (41 avaliações)</span></div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:11px; color:var(--terra);">📍 55 km</div>
-          </div>
-        </div>
-        <div class="tags-wrap">
-          <span class="tag">Gestão de Pastagens</span>
-          <span class="tag">Silagem</span>
-          <span class="tag">Adubação</span>
-        </div>
-        <div class="tech-footer">
-          <div>
-            <div class="tech-preco">R$ 190 <span style="font-size:12px; color:var(--terra); font-weight:400;">/visita</span></div>
-            <div style="font-size:11px; color:var(--terra);">ou R$ 540/mês (plano)</div>
-          </div>
-          <span class="tech-disponib disponib-agenda">📅 Agenda p/ próx. semana</span>
-        </div>
-      </div>
-
-      <div class="tech-card" onclick="openModal('modalTech4')">
-        <div class="tech-header">
-          <div class="tech-avatar v4">👩‍🌾</div>
-          <div style="flex:1;">
-            <div class="tech-nome">Dra. Aline Santos</div>
-            <div class="tech-cargo">Zootecnista — CFMV-RS 09.521</div>
-            <div class="stars">★★★★★ <span style="color:var(--terra); font-size:11px;">5,0 (28 avaliações)</span></div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:11px; color:var(--terra);">📍 8 km</div>
-          </div>
-        </div>
-        <div class="tags-wrap">
-          <span class="tag destaque">🏅 Certificada CBQL</span>
-          <span class="tag">Qualidade do Leite</span>
-          <span class="tag">CCS/CBT</span>
-          <span class="tag">Higiene de Ordenha</span>
-        </div>
-        <div class="tech-footer">
-          <div>
-            <div class="tech-preco">R$ 240 <span style="font-size:12px; color:var(--terra); font-weight:400;">/visita</span></div>
-            <div style="font-size:11px; color:var(--terra);">ou R$ 720/mês (plano)</div>
-          </div>
-          <span class="tech-disponib disponib-sim">● Disponível hoje</span>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Minha agenda de visitas -->
-    <div class="card mt20">
-      <div class="card-title">📆 Minhas Visitas Agendadas</div>
-      <div class="tabela-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Técnico</th>
-              <th>Serviço</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>16 Abr</strong></td>
-              <td>Dr. Carlos Mendes</td>
-              <td>Exame CCS</td>
-              <td><span class="badge badge-verde">Confirmado</span></td>
-            </tr>
-            <tr>
-              <td><strong>22 Abr</strong></td>
-              <td>Dra. Fernanda Lima</td>
-              <td>Ajuste nutricional</td>
-              <td><span class="badge badge-azul">Agendado</span></td>
-            </tr>
-            <tr>
-              <td><strong>30 Abr</strong></td>
-              <td>Eng. Roberto Alves</td>
-              <td>Pastagem de verão</td>
-              <td><span class="badge badge-amarelo">Pendente</span></td>
-            </tr>
-          </tbody>
+    <div class="card">
+      <div class="card-title">🥛 Comparativo produção</div>
+      <div class="table-wrapper">
+        <table class="data-table" id="rankingTable">
+          <thead><tr><th>Fazenda</th><th>L/vaca/dia</th><th>Rank</th></tr></thead>
+          <tbody></tbody>
         </table>
       </div>
     </div>
+    <div class="card">
+      <div class="card-title">💰 Custo por litro</div>
+      <div class="flex-between"><span>Seu custo: R$ <span id="custoLiteral">1,42</span>/L</span><span class="badge">Melhor que média R$ 1,64</span></div>
+      <div class="progress mt-2"><div class="progress-fill" id="custoProgress" style="width: 68%; background:#4CAF50;"></div></div>
+    </div>
+  </div>
 
-  </div><!-- /tab-servicos -->
-
+  <!-- ABA 4: SERVIÇOS -->
+  <div class="tab-panel" id="panel-servicos">
+    <div class="card" style="background: var(--verde-base); color: white;">
+      <div style="font-weight:600;">📞 Precisa de assistência?</div>
+      <div style="font-size:13px; margin: 6px 0;">Técnicos especializados perto de você</div>
+      <button class="btn" style="background:white; color: var(--verde-base);" id="solicitarServicoBtn">+ Solicitar visita</button>
+    </div>
+    <div class="card-title mb-2">👨‍⚕️ Profissionais disponíveis</div>
+    <div id="techList"></div>
+    <div class="card mt-2">
+      <div class="card-title">📆 Próximas visitas</div>
+      <div class="table-wrapper">
+        <table class="data-table"><thead><tr><th>Data</th><th>Técnico</th><th>Status</th></tr></thead><tbody id="visitasBody"></tbody></table>
+      </div>
+      <button class="btn btn-outline btn-small mt-2" id="addVisitaBtn" style="width:100%;">+ Agendar nova visita</button>
+    </div>
+  </div>
 </main>
 
-<!-- ===================== BOTTOM NAV MOBILE ===================== -->
-<nav class="bottom-bar" id="bottomNav">
-  <button class="bnav-item active" id="bnav-zootecnico" onclick="showTab('zootecnico', null, 'bnav-zootecnico')">
-    <span class="bnav-icon">🐄</span>
-    <span class="bnav-label">Rebanho</span>
-  </button>
-  <button class="bnav-item" id="bnav-benchmarking" onclick="showTab('benchmarking', null, 'bnav-benchmarking')">
-    <span class="bnav-icon">📊</span>
-    <span class="bnav-label">Ranking</span>
-  </button>
-  <button class="bnav-item" id="bnav-servicos" onclick="showTab('servicos', null, 'bnav-servicos')">
-    <span class="bnav-icon">🛠️</span>
-    <span class="bnav-label">Serviços</span>
-  </button>
-</nav>
-
-<!-- FAB mobile -->
-<button class="fab" onclick="openModal('modalLancamento')">＋</button>
-
-<!-- ===================== MODAIS ===================== -->
-
-<!-- Modal Lançamento Produção -->
-<div class="modal-overlay" id="modalLancamento">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">🥛 Lançar Produção</div>
-
-    <div class="grid-2">
-      <div class="input-group">
-        <label>Data</label>
-        <input type="date" value="2025-04-14">
-      </div>
-      <div class="input-group">
-        <label>Turno</label>
-        <select>
-          <option>Manhã</option>
-          <option>Tarde</option>
-          <option>Integral</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="input-group">
-      <label>Animal</label>
-      <select>
-        <option>Todos os animais (total lote)</option>
-        <option>#007 — Flora</option>
-        <option>#014 — Mimosa</option>
-        <option>#031 — Joana</option>
-        <option>#042 — Serena</option>
-      </select>
-    </div>
-
-    <div class="grid-2">
-      <div class="input-group">
-        <label>Volume (litros)</label>
-        <input type="number" placeholder="Ex: 920">
-      </div>
-      <div class="input-group">
-        <label>Gordura (%)</label>
-        <input type="number" placeholder="Ex: 3,8" step="0.1">
-      </div>
-    </div>
-
-    <div class="input-group">
-      <label>Observações</label>
-      <textarea placeholder="Anomalias, descarte, etc."></textarea>
-    </div>
-
-    <div class="flex" style="gap:10px; margin-top:4px;">
-      <button class="btn btn-primary w100" onclick="closeModal('modalLancamento')">✓ Salvar lançamento</button>
-      <button class="btn btn-outline" onclick="closeModal('modalLancamento')" style="flex-shrink:0;">Cancelar</button>
-    </div>
-  </div>
+<div class="bottom-nav">
+  <button class="nav-item active" data-mobile-tab="zootecnico"><span class="nav-icon">🐄</span><span>Rebanho</span></button>
+  <button class="nav-item" data-mobile-tab="financeiro"><span class="nav-icon">💰</span><span>Financeiro</span></button>
+  <button class="nav-item" data-mobile-tab="benchmarking"><span class="nav-icon">📊</span><span>Ranking</span></button>
+  <button class="nav-item" data-mobile-tab="servicos"><span class="nav-icon">🛠️</span><span>Técnicos</span></button>
 </div>
 
-<!-- Modal Solicitar Serviço -->
-<div class="modal-overlay" id="modalSolicitar">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">📋 Solicitar Visita Técnica</div>
+<!-- MODAIS -->
+<div class="modal-mask" id="modalLancamento"><div class="modal-content"><div class="modal-handle"></div><div class="card-title mb-2">🥛 Lançar produção</div>
+  <div class="input-group"><label>Data</label><input type="date" id="lancData"></div>
+  <div class="input-group"><label>Animal</label><select id="lancAnimalSelect"></select></div>
+  <div class="input-group"><label>Litros (hoje)</label><input type="number" id="lancLitros" step="0.1" placeholder="Ex: 34.2"></div>
+  <div class="flex-between gap-2 mt-2"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('modalLancamento')">Cancelar</button><button class="btn" style="flex:1;" id="confirmarLancamento">Salvar</button></div>
+</div></div>
 
-    <div class="input-group">
-      <label>Tipo de serviço</label>
-      <select>
-        <option>Medicina Veterinária</option>
-        <option>Nutrição Animal</option>
-        <option>Reprodução</option>
-        <option>Qualidade do Leite</option>
-        <option>Gestão de Pastagens</option>
-        <option>Consultoria de Gestão</option>
-      </select>
-    </div>
+<div class="modal-mask" id="modalTransacao"><div class="modal-content"><div class="modal-handle"></div><div class="card-title mb-2">💰 Registrar movimentação</div>
+  <div class="input-group"><label>Tipo</label><select id="tipoTransacao"><option value="receita">Receita (venda leite)</option><option value="despesa">Despesa</option></select></div>
+  <div class="input-group"><label>Data</label><input type="date" id="transacaoData"></div>
+  <div class="input-group"><label>Descrição</label><input id="transacaoDesc" placeholder="Ex: Venda de leite, Ração"></div>
+  <div class="input-group"><label>Categoria</label><select id="transacaoCategoria"><option>Venda de Leite</option><option>Alimentação</option><option>Sanidade</option><option>Mão de obra</option><option>Energia</option><option>Outros</option></select></div>
+  <div class="input-group"><label>Valor (R$)</label><input type="number" id="transacaoValor" step="0.01"></div>
+  <div class="flex-between gap-2 mt-2"><button class="btn btn-outline" style="flex:1;" onclick="closeModal('modalTransacao')">Cancelar</button><button class="btn" style="flex:1;" id="confirmarTransacao">Registrar</button></div>
+</div></div>
 
-    <div class="grid-2">
-      <div class="input-group">
-        <label>Data preferida</label>
-        <input type="date">
-      </div>
-      <div class="input-group">
-        <label>Período</label>
-        <select>
-          <option>Manhã</option>
-          <option>Tarde</option>
-          <option>Indiferente</option>
-        </select>
-      </div>
-    </div>
+<div class="modal-mask" id="modalAnimalDetail"><div class="modal-content"><div class="modal-handle"></div><div id="modalAnimalInner"></div><button class="btn btn-outline btn-block mt-2" onclick="closeModal('modalAnimalDetail')">Fechar</button></div></div>
 
-    <div class="input-group">
-      <label>Descreva sua necessidade</label>
-      <textarea placeholder="Ex: Vacas com CCS elevado nos últimos 15 dias..."></textarea>
-    </div>
-
-    <div class="input-group">
-      <label>Orçamento estimado</label>
-      <select>
-        <option>Até R$ 200</option>
-        <option>R$ 200–400</option>
-        <option>R$ 400–800</option>
-        <option>Acima de R$ 800</option>
-      </select>
-    </div>
-
-    <div class="flex" style="gap:10px; margin-top:4px;">
-      <button class="btn btn-primary w100" onclick="closeModal('modalSolicitar')">Enviar solicitação →</button>
-      <button class="btn btn-outline" onclick="closeModal('modalSolicitar')" style="flex-shrink:0;">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Animal -->
-<div class="modal-overlay" id="modalAnimal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div id="modalAnimalContent"></div>
-  </div>
-</div>
-
-<!-- Modal Tech 1 -->
-<div class="modal-overlay" id="modalTech1">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">👨‍⚕️ Dr. Carlos Mendes</div>
-    <div style="font-size:13px; color:var(--terra); margin-bottom:12px;">Médico Veterinário · CRMV-RS 12.847 · 📍 32 km de você</div>
-    <div class="alert alert-verde">✅ Disponível para agendamento imediato</div>
-    <div class="grid-2 mt12">
-      <div class="kpi-card"><div class="kpi-label">Avaliação</div><div class="kpi-value" style="font-size:22px;">4,9 ★</div><div class="kpi-trend">87 clientes</div></div>
-      <div class="kpi-card amarelo"><div class="kpi-label">Experiência</div><div class="kpi-value" style="font-size:22px;">14</div><div class="kpi-trend">anos no setor</div></div>
-    </div>
-    <div class="input-group mt16">
-      <label>Selecione data para visita</label>
-      <input type="date">
-    </div>
-    <div class="input-group">
-      <label>Motivo da visita</label>
-      <textarea placeholder="Descreva o que precisa..."></textarea>
-    </div>
-    <div class="flex" style="gap:10px; margin-top:4px;">
-      <button class="btn btn-primary w100" onclick="closeModal('modalTech1')">Solicitar agendamento →</button>
-      <button class="btn btn-outline" onclick="closeModal('modalTech1')" style="flex-shrink:0;">Voltar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Outros modais de técnicos (simplificados) -->
-<div class="modal-overlay" id="modalTech2">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">👩‍🔬 Dra. Fernanda Lima</div>
-    <div style="font-size:13px; color:var(--terra); margin-bottom:12px;">Zootecnista · CRMV-RS 08.214 · 📍 18 km de você</div>
-    <div class="alert alert-verde">✅ Disponível para agendamento imediato</div>
-    <div class="input-group mt12"><label>Data preferida</label><input type="date"></div>
-    <div class="input-group"><label>Motivo</label><textarea placeholder="Ex: Revisão de dieta para vacas de alta produção..."></textarea></div>
-    <div class="flex" style="gap:10px; margin-top:4px;">
-      <button class="btn btn-primary w100" onclick="closeModal('modalTech2')">Solicitar agendamento →</button>
-      <button class="btn btn-outline" onclick="closeModal('modalTech2')" style="flex-shrink:0;">Voltar</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modalTech3">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">👨‍💼 Eng. Roberto Alves</div>
-    <div style="font-size:13px; color:var(--terra); margin-bottom:12px;">Engenheiro Agrônomo · CREA-RS 47.320 · 📍 55 km de você</div>
-    <div class="alert alert-amarelo">📅 Próxima disponibilidade: 22 de abril</div>
-    <div class="input-group mt12"><label>Data preferida</label><input type="date"></div>
-    <div class="input-group"><label>Motivo</label><textarea placeholder="Ex: Avaliação de pastagem para a próxima estação..."></textarea></div>
-    <div class="flex" style="gap:10px; margin-top:4px;">
-      <button class="btn btn-primary w100" onclick="closeModal('modalTech3')">Agendar →</button>
-      <button class="btn btn-outline" onclick="closeModal('modalTech3')" style="flex-shrink:0;">Voltar</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modalTech4">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">👩‍🌾 Dra. Aline Santos</div>
-    <div style="font-size:13px; color:var(--terra); margin-bottom:12px;">Zootecnista · CFMV-RS 09.521 · 📍 8 km de você</div>
-    <div class="alert alert-verde">✅ Disponível <strong>hoje</strong></div>
-    <div class="input-group mt12"><label>Data preferida</label><input type="date"></div>
-    <div class="input-group"><label>Motivo</label><textarea placeholder="Ex: Auditoria de qualidade do leite — CCS/CBT..."></textarea></div>
-    <div class="flex" style="gap:10px; margin-top:4px;">
-      <button class="btn btn-primary w100" onclick="closeModal('modalTech4')">Agendar hoje →</button>
-      <button class="btn btn-outline" onclick="closeModal('modalTech4')" style="flex-shrink:0;">Voltar</button>
-    </div>
-  </div>
-</div>
+<div class="modal-mask" id="modalSolicitar"><div class="modal-content"><div class="modal-handle"></div><div class="card-title mb-2">📋 Nova solicitação</div>
+  <div class="input-group"><label>Tipo</label><select id="servicoTipo"><option>Veterinário</option><option>Nutrição</option><option>Reprodução</option></select></div>
+  <div class="input-group"><label>Data</label><input type="date" id="servicoData"></div>
+  <div class="input-group"><label>Técnico</label><input id="servicoTecnico" placeholder="Nome do profissional"></div>
+  <div class="flex-between gap-2"><button class="btn btn-outline" onclick="closeModal('modalSolicitar')">Cancelar</button><button class="btn" id="confirmarSolicitacao">Enviar</button></div>
+</div></div>
 
 <script>
-// ===================== TABS =====================
-function showTab(id, btn, bnavId) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
+  // DADOS GLOBAIS
+  let animais = [
+    { id: '007', nome: 'Flora', raca: 'Holandesa', prod: 34.2, status: 'Ótima', ccs: 110, lactDias: 18, peso: '542kg' },
+    { id: '014', nome: 'Mimosa', raca: 'Jersey', prod: 22.8, status: 'Atenção', ccs: 320, lactDias: 87, peso: '460kg' },
+    { id: '031', nome: 'Joana', raca: 'Girolando', prod: 18.4, status: 'CCS Alto', ccs: 580, lactDias: 210, peso: '498kg' },
+    { id: '042', nome: 'Serena', raca: 'Holandesa', prod: 31.0, status: 'Ótima', ccs: 95, lactDias: 12, peso: '510kg' }
+  ];
+  
+  let metricasGerais = { producaoTotalDia: 1847, vacasLactacao: 62, mediaVaca: 29.8, ccsMedio: 248, scoreBenchmark: 87, custoLitro: 1.42 };
+  let rankingFazendas = [
+    { nome: "Boa Esperança", producao: 38.4, rank: "🥇" }, { nome: "Sítio Três Irmãos", producao: 35.9, rank: "🥈" },
+    { nome: "Granja Santa Clara", producao: 33.1, rank: "🥉" }, { nome: "★ São Pedro (você)", producao: 29.8, rank: "4º" },
+    { nome: "Campo Verde Agro", producao: 27.4, rank: "5º" }
+  ];
+  let visitasAgendadas = [
+    { data: "2025-04-16", tecnico: "Dr. Carlos Mendes", status: "Confirmado" },
+    { data: "2025-04-22", tecnico: "Dra. Fernanda Lima", status: "Agendado" }
+  ];
+  const tecnicos = [
+    { nome: 'Dr. Carlos Mendes', cargo: 'Médico Veterinário', distancia: '32 km', preco: 'R$ 280/visita', disponivel: true, estrelas: '4.9 ★' },
+    { nome: 'Dra. Fernanda Lima', cargo: 'Zootecnista', distancia: '18 km', preco: 'R$ 220/visita', disponivel: true, estrelas: '4.8 ★' },
+    { nome: 'Eng. Roberto Alves', cargo: 'Engenheiro Agrônomo', distancia: '55 km', preco: 'R$ 190/visita', disponivel: false, estrelas: '4.6 ★' }
+  ];
 
-  // desktop tabs
-  if (btn) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  let transacoes = [
+    { id: 1, data: "2025-04-01", descricao: "Venda de leite (cooperativa)", categoria: "Venda de Leite", tipo: "receita", valor: 3850.00 },
+    { id: 2, data: "2025-04-05", descricao: "Compra de ração concentrada", categoria: "Alimentação", tipo: "despesa", valor: 1240.00 },
+    { id: 3, data: "2025-04-08", descricao: "Consulta veterinária", categoria: "Sanidade", tipo: "despesa", valor: 350.00 },
+    { id: 4, data: "2025-04-12", descricao: "Venda de leite (queijaria)", categoria: "Venda de Leite", tipo: "receita", valor: 2100.00 },
+    { id: 5, data: "2025-04-14", descricao: "Energia elétrica", categoria: "Energia", tipo: "despesa", valor: 420.00 }
+  ];
+  let nextTransacaoId = 6;
+  const PRECO_MEDIO_LITRO = 2.10;
+
+  // PERSISTÊNCIA
+  function salvarTudo() {
+    localStorage.setItem('leitebov_completo', JSON.stringify({ animais, metricasGerais, rankingFazendas, visitasAgendadas, transacoes }));
   }
-
-  // mobile bottom nav
-  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
-  const activeId = bnavId || ('bnav-' + id);
-  const activeBtn = document.getElementById(activeId);
-  if (activeBtn) activeBtn.classList.add('active');
-
-  // sync desktop tabs when triggered from mobile
-  if (!btn) {
-    document.querySelectorAll('.tab-btn').forEach((b, i) => {
-      const ids = ['zootecnico','benchmarking','servicos'];
-      b.classList.toggle('active', ids[i] === id);
-    });
-  }
-}
-
-// ===================== MODAIS =====================
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// Fechar ao clicar no overlay
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', function(e) {
-    if (e.target === this) {
-      this.classList.remove('open');
-      document.body.style.overflow = '';
+  function carregarDados() {
+    const saved = localStorage.getItem('leitebov_completo');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        animais = data.animais; metricasGerais = data.metricasGerais; rankingFazendas = data.rankingFazendas;
+        visitasAgendadas = data.visitasAgendadas; transacoes = data.transacoes;
+        nextTransacaoId = Math.max(...transacoes.map(t=>t.id), 0) + 1;
+        const totalProd = animais.reduce((s,a)=> s + a.prod,0);
+        metricasGerais.producaoTotalDia = Math.round(totalProd);
+        metricasGerais.mediaVaca = parseFloat((totalProd / metricasGerais.vacasLactacao).toFixed(1));
+        const idx = rankingFazendas.findIndex(f => f.nome.includes("São Pedro"));
+        if(idx !== -1) rankingFazendas[idx].producao = metricasGerais.mediaVaca;
+        rankingFazendas.sort((a,b)=>b.producao - a.producao);
+      } catch(e) {}
     }
-  });
-});
-
-// ===================== ANIMAL MODAL =====================
-const animaisData = {
-  1: { nome:'Flora', id:'#007', raca:'Holandesa', prod:'34,2', status:'Ótima', dias:'18 dias de gestação', peso:'542 kg', ccs:'110', historico:[28,30,32,31,33,34,34] },
-  2: { nome:'Mimosa', id:'#014', raca:'Jersey', prod:'22,8', status:'Atenção', dias:'87 dias de lactação', peso:'460 kg', ccs:'320', historico:[26,25,24,24,23,23,22] },
-  3: { nome:'Joana', id:'#031', raca:'Girolando', prod:'18,4', status:'CCS Alto', dias:'210 dias de lactação', peso:'498 kg', ccs:'580', historico:[24,22,21,20,19,19,18] },
-  4: { nome:'Serena', id:'#042', raca:'Holandesa', prod:'31,0', status:'Ótima', dias:'12 dias de lactação', peso:'510 kg', ccs:'95', historico:[18,22,26,28,29,30,31] },
-};
-
-function openAnimal(id) {
-  const a = animaisData[id];
-  const statusBadge = a.status === 'Ótima' ? 'badge-verde' : (a.status === 'CCS Alto' ? 'badge-vermelho' : 'badge-amarelo');
-  const barsHtml = a.historico.map((v, i) => {
-    const h = Math.round((v / 40) * 60);
-    const dias = ['S','T','Q','Q','S','S','D'];
-    return `<div class="bar-wrap"><div class="bar" style="height:${h}px"></div><div class="bar-label">${dias[i]}</div></div>`;
-  }).join('');
-
-  document.getElementById('modalAnimalContent').innerHTML = `
-    <div class="modal-title">🐄 ${a.nome} <span class="badge ${statusBadge}" style="font-size:13px; vertical-align:middle;">${a.status}</span></div>
-    <div style="font-size:13px; color:var(--terra); margin-bottom:14px;">${a.id} · ${a.raca} · ${a.dias}</div>
-    <div class="grid-3" style="margin-bottom:14px;">
-      <div class="kpi-card"><div class="kpi-label">Prod. Hoje</div><div class="kpi-value" style="font-size:22px;">${a.prod}<span class="kpi-unit" style="font-size:12px;"> L</span></div></div>
-      <div class="kpi-card amarelo"><div class="kpi-label">Peso</div><div class="kpi-value" style="font-size:22px;">${a.peso}</div></div>
-      <div class="kpi-card ${parseInt(a.ccs)>200?'vermelho':''}"><div class="kpi-label">CCS (mil)</div><div class="kpi-value" style="font-size:22px;">${a.ccs}</div></div>
-    </div>
-    <div class="card-title">📈 Produção últimos 7 dias</div>
-    <div class="mini-chart">${barsHtml}</div>
-    <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--terra); margin-top:2px; margin-bottom:14px;">
-      <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
-    </div>
-    <button class="btn btn-primary w100" onclick="closeModal('modalAnimal')">Fechar</button>
-  `;
-  openModal('modalAnimal');
-}
-
-// ===================== GRÁFICOS =====================
-function buildChart(containerId, values, color1, color2) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const max = Math.max(...values);
-  const height = 60;
-  values.forEach(v => {
-    const wrap = document.createElement('div');
-    wrap.className = 'bar-wrap';
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    const h = Math.round((v / max) * height);
-    bar.style.height = h + 'px';
-    if (color1 && color2) bar.style.background = `linear-gradient(180deg, ${color1}, ${color2})`;
-    wrap.appendChild(bar);
-    container.appendChild(wrap);
-  });
-}
-
-buildChart('chartSemanal', [1720, 1780, 1810, 1830, 1790, 1760, 1847], '#7FB236', '#4A7C28');
-buildChart('chartBench', [62, 67, 70, 72, 75, 80, 87], '#D4A017', '#7FB236');
-
-// ===================== NOTIFICAÇÃO =====================
-function toggleNotif() {
-  alert('📋 Notificações:\n\n⚠️ Mimosa: vacina vence em 3 dias\n🩺 Joana: CCS elevado — ver vet.\n✅ Confirmado: Carlos Mendes — 16/Abr');
-}
-
-// Inicializa a data nos inputs de data
-document.querySelectorAll('input[type="date"]').forEach(el => {
-  if (!el.value) {
-    const now = new Date();
-    el.value = now.toISOString().split('T')[0];
   }
-});
+
+  // RENDERIZAÇÃO
+  function renderizarAnimais() {
+    const container = document.getElementById('animalList');
+    container.innerHTML = animais.map(ani => {
+      const statusBadge = ani.status === 'Ótima' ? 'badge' : (ani.status === 'CCS Alto' ? 'badge-danger' : 'badge-warning');
+      return `
+        <div class="animal-row" onclick="abrirAnimal('${ani.id}')">
+          <div class="animal-avatar">🐄</div>
+          <div class="animal-info">
+            <div class="animal-name">#${ani.id} · ${ani.nome}</div>
+            <div class="animal-details">
+              <span class="animal-detail-item">🐄 ${ani.raca}</span>
+              <span class="animal-detail-item">📅 ${ani.lactDias} dias lact</span>
+              <span class="animal-detail-item">🔬 CCS ${ani.ccs}k</span>
+            </div>
+            <div class="animal-badge"><span class="${statusBadge}">${ani.status}</span></div>
+          </div>
+          <div class="animal-prod-area">
+            <div class="animal-prod-value">${ani.prod.toFixed(1)}</div>
+            <div class="animal-prod-label">litros/dia</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderizarKPIs() {
+    document.getElementById('kpiContainer').innerHTML = `
+      <div class="kpi-item"><div class="kpi-label">🥛 Produção</div><div class="kpi-value">${metricasGerais.producaoTotalDia} <span class="kpi-unit">L</span></div><div class="kpi-trend">↑ 3%</div></div>
+      <div class="kpi-item"><div class="kpi-label">🐄 Lactação</div><div class="kpi-value">${metricasGerais.vacasLactacao}</div><div class="kpi-trend">de 78 vacas</div></div>
+      <div class="kpi-item"><div class="kpi-label">📊 Média/vaca</div><div class="kpi-value">${metricasGerais.mediaVaca} <span class="kpi-unit">L</span></div><div class="kpi-trend">meta 28L ✓</div></div>
+      <div class="kpi-item"><div class="kpi-label">🧪 CCS</div><div class="kpi-value">${metricasGerais.ccsMedio}k</div><div class="kpi-trend">${metricasGerais.ccsMedio > 200 ? '⚠️ atenção' : 'ok'}</div></div>`;
+  }
+
+  function renderizarAlertas() {
+    const alertas = animais.filter(a => a.ccs > 300);
+    document.getElementById('alertContainer').innerHTML = alertas.length ? 
+      alertas.map(a => `<div class="alert-line" style="border-left-color:#D9534F;">🩺 <strong>${a.nome} (#${a.id})</strong> - CCS elevado (${a.ccs}k), recomendado acompanhamento veterinário</div>`).join('') : 
+      '<div class="alert-line" style="border-left-color:#4CAF50;">✅ Nenhum alerta crítico no momento</div>';
+  }
+
+  function renderizarRanking() {
+    const tbody = document.querySelector('#rankingTable tbody');
+    if(tbody) tbody.innerHTML = rankingFazendas.map(f => `<tr ${f.nome.includes('São Pedro') ? 'style="background:#E8F3E8;"' : ''}><td><strong>${f.nome}</strong></td><td>${f.producao} L</td><td>${f.rank}</td></tr>`).join('');
+    const pos = rankingFazendas.findIndex(f => f.nome.includes("São Pedro")) + 1;
+    document.getElementById('rankPosicao').innerText = pos + 'º lugar';
+    document.getElementById('progressScore').style.width = `${(metricasGerais.mediaVaca / 38)*100}%`;
+    document.getElementById('custoLiteral').innerText = metricasGerais.custoLit
+    document.getElementById('custoProgress').style.width = `${((1.64 - metricasGerais.custoLit) / 0.5)*100}%`;
+  }
+
+  function renderizarFinanceiro() {
+    const now = new Date();
+    const transacoesMes = transacoes.filter(t => new Date(t.data).getMonth() === now.getMonth());
+    const receitas = transacoesMes.filter(t => t.tipo === 'receita').reduce((s, t) => s + t.valor, 0);
+    const despesas = transacoesMes.filter(t => t.tipo === 'despesa').reduce((s, t) => s + t.valor, 0);
+    const resultado = receitas - despesas;
+    const producaoMensalLitros = metricasGerais.producaoTotalDia * 30;
+    const custoPorLitro = despesas / (producaoMensalLitros || 1);
+    const lucroPorLitro = PRECO_MEDIO_LITRO - custoPorLitro;
+    
+    document.getElementById('finKpis').innerHTML = `
+      <div class="kpi-item"><div class="kpi-label">Receitas (mês)</div><div class="kpi-value" style="color:#2E7D32;">R$ ${receitas.toFixed(2)}</div></div>
+      <div class="kpi-item"><div class="kpi-label">Despesas (mês)</div><div class="kpi-value" style="color:#C0392B;">R$ ${despesas.toFixed(2)}</div></div>
+      <div class="kpi-item"><div class="kpi-label">Resultado</div><div class="kpi-value" style="color:${resultado>=0?'#2E7D32':'#C0392B'};">R$ ${resultado.toFixed(2)}</div></div>`;
+    document.getElementById('totalReceitasValor').innerText = `R$ ${receitas.toFixed(2)}`;
+    document.getElementById('totalDespesasValor').innerText = `R$ ${despesas.toFixed(2)}`;
+    document.getElementById('resultadoMes').innerText = `R$ ${resultado.toFixed(2)}`;
+    document.getElementById('custoTotalOperacional').innerText = `R$ ${despesas.toFixed(2)}`;
+    document.getElementById('producaoTotalLitros').innerText = `${Math.round(producaoMensalLitros)} L`;
+    document.getElementById('custoPorLitroValor').innerText = `R$ ${custoPorLitro.toFixed(2)}`;
+    document.getElementById('lucroPorLitro').innerHTML = `R$ ${lucroPorLitro.toFixed(2)}`;
+    const tbody = document.getElementById('transacoesBody');
+    if(tbody) tbody.innerHTML = transacoes.slice(0, 5).map(t => `<tr><td>${new Date(t.data).toLocaleDateString()}</td><td>${t.descricao}</td><td>${t.categoria}</td><td>${t.tipo === 'receita' ? '💰 Receita' : '📉 Despesa'}</td><td style="color:${t.tipo==='receita'?'#2E7D32':'#C0392B'}">R$ ${t.valor.toFixed(2)}</td><td><button style="background:none; border:none; cursor:pointer;" onclick="removerTransacao(${t.id})">🗑️</button></td></tr>`).join('');
+  }
+
+  function renderizarTecnicos() {
+    document.getElementById('techList').innerHTML = tecnicos.map(tech => `<div class="card" style="margin-bottom:12px; cursor:pointer;" onclick="simularContratar('${tech.nome}')"><div class="flex-between"><span style="font-weight:600;">${tech.nome}</span><span>📍 ${tech.distancia}</span></div><div class="text-small">${tech.cargo} · ${tech.estrelas}</div><div class="flex-between mt-2"><span class="badge">${tech.disponivel ? '✅ Disponível' : '📅 Agenda'}</span><span>${tech.preco}</span></div></div>`).join('');
+  }
+
+  function renderizarVisitas() {
+    const tbody = document.getElementById('visitasBody');
+    if(tbody) tbody.innerHTML = visitasAgendadas.map(v => `<tr><td>${new Date(v.data).toLocaleDateString()}</td><td>${v.tecnico}</td><td><span class="badge">${v.status}</span></td></tr>`).join('');
+  }
+
+  function renderizarTudo() { renderizarKPIs(); renderizarAlertas(); renderizarAnimais(); renderizarRanking(); renderizarFinanceiro(); renderizarTecnicos(); renderizarVisitas(); }
+
+  // AÇÕES
+  function lancarProducao(animalId, novosLitros) {
+    const animal = animais.find(a => a.id === animalId);
+    if(animal && !isNaN(novosLitros) && novosLitros > 0) {
+      animal.prod = parseFloat(novosLitros);
+      const totalProd = animais.reduce((s,a)=> s + a.prod,0);
+      metricasGerais.producaoTotalDia = Math.round(totalProd);
+      metricasGerais.mediaVaca = parseFloat((totalProd / metricasGerais.vacasLactacao).toFixed(1));
+      const idx = rankingFazendas.findIndex(f => f.nome.includes("São Pedro"));
+      if(idx !== -1) rankingFazendas[idx].producao = metricasGerais.mediaVaca;
+      rankingFazendas.sort((a,b)=>b.producao - a.producao);
+      salvarTudo();
+      renderizarTudo();
+    }
+  }
+
+  function adicionarTransacao(tipo, data, desc, categoria, valor) {
+    transacoes.push({ id: nextTransacaoId++, data, descricao: desc, categoria, tipo, valor });
+    salvarTudo();
+    renderizarFinanceiro();
+  }
+
+  window.removerTransacao = (id) => { transacoes = transacoes.filter(t => t.id !== id); salvarTudo(); renderizarFinanceiro(); };
+  window.abrirAnimal = (id) => { const a = animais.find(x=>x.id===id); document.getElementById('modalAnimalInner').innerHTML = `<div class="card-title">🐄 ${a.nome}</div><div><strong>#${a.id}</strong> · ${a.raca}<br><br>📊 Produção: <strong>${a.prod} L/dia</strong><br>🔬 CCS: ${a.ccs}k<br>📅 Dias em lactação: ${a.lactDias}<br>⚖️ Peso: ${a.peso}<br><br><span class="badge">${a.status}</span></div>`; openModal('modalAnimalDetail'); };
+  window.simularContratar = (nome) => alert(`📞 Solicitação enviada para ${nome}. Em breve retornamos contato.`);
+  function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+  window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; };
+
+  // EVENTOS
+  document.getElementById('fabLancarBtn')?.addEventListener('click', () => { document.getElementById('lancAnimalSelect').innerHTML = animais.map(a=>`<option value="${a.id}">#${a.id} ${a.nome} (atual: ${a.prod}L)</option>`).join(''); openModal('modalLancamento'); });
+  document.getElementById('confirmarLancamento')?.addEventListener('click', () => { lancarProducao(document.getElementById('lancAnimalSelect').value, parseFloat(document.getElementById('lancLitros').value)); closeModal('modalLancamento'); document.getElementById('lancLitros').value = ''; });
+  document.getElementById('btnAddTransacao')?.addEventListener('click', () => { document.getElementById('transacaoData').valueAsDate = new Date(); openModal('modalTransacao'); });
+  document.getElementById('confirmarTransacao')?.addEventListener('click', () => { const tipo = document.getElementById('tipoTransacao').value; const data = document.getElementById('transacaoData').value; const desc = document.getElementById('transacaoDesc').value; const categoria = document.getElementById('transacaoCategoria').value; const valor = parseFloat(document.getElementById('transacaoValor').value); if(!data || !desc || isNaN(valor)) { alert("Preencha todos os campos"); return; } adicionarTransacao(tipo, data, desc, categoria, valor); closeModal('modalTransacao'); document.getElementById('transacaoDesc').value = ''; document.getElementById('transacaoValor').value = ''; });
+  document.getElementById('solicitarServicoBtn')?.addEventListener('click', () => openModal('modalSolicitar'));
+  document.getElementById('confirmarSolicitacao')?.addEventListener('click', () => { alert("✅ Solicitação enviada! Profissionais serão notificados."); closeModal('modalSolicitar'); });
+  document.getElementById('addVisitaBtn')?.addEventListener('click', () => openModal('modalSolicitar'));
+  document.getElementById('verTodasTransacoes')?.addEventListener('click', () => alert(`📋 EXTRATO COMPLETO:\n\n${transacoes.map(t=>`${t.data} | ${t.descricao} | R$ ${t.valor.toFixed(2)}`).join('\n')}`));
+
+  // TABS
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`panel-${tabId}`).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(btn => { if(btn.getAttribute('data-tab') === tabId) btn.classList.add('active'); else btn.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(nav => { if(nav.getAttribute('data-mobile-tab') === tabId) nav.classList.add('active'); else nav.classList.remove('active'); });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => showTab(btn.getAttribute('data-tab'))));
+  document.querySelectorAll('.nav-item').forEach(nav => nav.addEventListener('click', () => showTab(nav.getAttribute('data-mobile-tab'))));
+  document.querySelectorAll('.modal-mask').forEach(mask => mask.addEventListener('click', (e) => { if(e.target === mask) closeModal(mask.id); }));
+
+  document.getElementById('lancData').valueAsDate = new Date();
+  carregarDados();
+  renderizarTudo();
 </script>
 </body>
 </html>
